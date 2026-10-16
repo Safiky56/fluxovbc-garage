@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fluxo Garage | Sistema Integral de Gestión de Taller Automotriz</title>
+  
+  <!-- Favicon / Meta -->
+  <link rel="icon" type="image/svg+xml" href="assets/logo.svg">
+  <meta name="description" content="Plataforma profesional para control de órdenes de trabajo, diagnóstico, repuestos y seguimiento de clientes en talleres mecánicos.">
+
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Roboto+Mono:wght@600;700&display=swap" rel="stylesheet">
+
+  <!-- Font Awesome 6 -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+  <!-- App Stylesheet -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Top App Navigation Bar -->
+  <header class="app-header">
+    <div class="header-container">
+      <div class="brand-wrapper">
+        <a href="/" style="display: flex; align-items: center;">
+          <img src="assets/logo.svg" alt="Fluxo Garage Logo" class="brand-logo">
+        </a>
+
+        <!-- Database Status Pill (Clickable) -->
+        <div id="dbStatusPill" class="db-pill sqlite-active" onclick="openDbModal()" title="Configuración de Base de Datos (Supabase / SQLite)">
+          <span class="db-dot"></span>
+          <span id="dbStatusText">SQLite Local</span>
+          <i class="fa-solid fa-gear" style="font-size: 11px; margin-left: 3px; opacity: 0.7;"></i>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <a href="https://wa.me/59169710419?text=Hola%20FLUXO%20GARAGE,%20deseo%20hacer%20una%20consulta" target="_blank" class="btn btn-whatsapp btn-sm" title="WhatsApp Oficial del Taller">
+          <i class="fa-brands fa-whatsapp"></i> +591 69710419
+        </a>
+        <button class="btn btn-secondary btn-sm" onclick="openTrackingModal()">
+          <i class="fa-solid fa-magnifying-glass-location"></i> Portal Cliente
+        </button>
+        <a href="/api/export/csv" class="btn btn-secondary btn-sm" title="Descargar reporte en formato CSV / Excel">
+          <i class="fa-solid fa-file-arrow-down"></i> Exportar
+        </a>
+        <button class="btn btn-secondary btn-sm" onclick="resetDemoData()" title="Reiniciar base de datos a valores de prueba">
+          <i class="fa-solid fa-rotate-left"></i> Demo
+        </button>
+        <button class="btn btn-primary" onclick="openNewOrderModal()">
+          <i class="fa-solid fa-plus"></i> Nueva Recepción
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Application Content -->
+  <main class="main-wrapper">
+
+    <!-- KPI Metrics Dashboard -->
+    <section class="metrics-grid">
+      <div class="metric-card accent-orange">
+        <div class="metric-info">
+          <h4>Vehículos en Taller</h4>
+          <div class="metric-value" id="metricWorkshop">0</div>
+          <div class="metric-sub">Órdenes activas en curso</div>
+        </div>
+        <div class="metric-icon-box">
+          <i class="fa-solid fa-car"></i>
+        </div>
+      </div>
+
+      <div class="metric-card accent-cyan">
+        <div class="metric-info">
+          <h4>En Diagnóstico</h4>
+          <div class="metric-value" id="metricDiag">0</div>
+          <div class="metric-sub">Inspección y escáner</div>
+        </div>
+        <div class="metric-icon-box">
+          <i class="fa-solid fa-stethoscope"></i>
+        </div>
+      </div>
+
+      <div class="metric-card accent-amber">
+        <div class="metric-info">
+          <h4>En Reparación</h4>
+          <div class="metric-value" id="metricRepair">0</div>
+          <div class="metric-sub">Mecánica y repuestos</div>
+        </div>
+        <div class="metric-icon-box">
+          <i class="fa-solid fa-screwdriver-wrench"></i>
+        </div>
+      </div>
+
+      <div class="metric-card accent-green">
+        <div class="metric-info">
+          <h4>Listos para Entrega</h4>
+          <div class="metric-value" id="metricReady">0</div>
+          <div class="metric-sub">Inspección final aprobada</div>
+        </div>
+        <div class="metric-icon-box">
+          <i class="fa-solid fa-key"></i>
+        </div>
+      </div>
+
+      <div class="metric-card accent-purple">
+        <div class="metric-info">
+          <h4>Presupuestos Activos</h4>
+          <div class="metric-value" id="metricBudget">Bs 0</div>
+          <div class="metric-sub">Mano de obra + repuestos</div>
+        </div>
+        <div class="metric-icon-box">
+          <i class="fa-solid fa-file-invoice-dollar"></i>
+        </div>
+      </div>
+    </section>
+
+    <!-- Search & Filter Controls -->
+    <section class="control-bar">
+      <div class="search-wrapper">
+        <i class="fa-solid fa-magnifying-glass search-icon"></i>
+        <input type="text" id="searchInput" class="search-input" placeholder="Buscar por placa, cliente, modelo u OT (ej: 4587-KLP)...">
+      </div>
+
+      <div class="filter-chips">
+        <div class="chip active" data-filter="all">Todas las órdenes</div>
+        <div class="chip" data-filter="0">Recibidos</div>
+        <div class="chip" data-filter="1">En Diagnóstico</div>
+        <div class="chip" data-filter="2">Presupuestados</div>
+        <div class="chip" data-filter="3">En Reparación</div>
+        <div class="chip" data-filter="4">Control Calidad</div>
+        <div class="chip" data-filter="5">Listos</div>
+        <div class="chip" data-filter="6">Entregados</div>
+      </div>
+    </section>
+
+    <!-- Master-Detail Workshop Area -->
+    <section class="workspace-grid">
+      
+      <!-- Left Column: Order Cards Scrollable List -->
+      <aside class="orders-panel">
+        <div class="panel-header">
+          <h3><i class="fa-solid fa-warehouse"></i> Bahías y Vehículos</h3>
+          <span style="font-size: 11px; color: var(--accent-cyan); font-weight: 700; display: inline-flex; align-items: center; gap: 5px;">
+            <i class="fa-solid fa-circle" style="font-size: 7px;"></i> En vivo
+          </span>
+        </div>
+        <div class="orders-scroll-list" id="ordersList">
+          <!-- Populated dynamically by app.js -->
+        </div>
+      </aside>
+
+      <!-- Right Column: Interactive Detail Workspace -->
+      <section class="detail-panel" id="detailWorkspace">
+        <!-- Populated dynamically by app.js -->
+      </section>
+
+    </section>
+
+  </main>
+
+  <!-- Modal: Nueva Recepción Vehicular -->
+  <div class="modal-overlay" id="modalNewOrder">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-car-on"></i> Recepción de Nuevo Vehículo</h3>
+        <button class="btn btn-icon btn-sm btn-secondary" onclick="closeNewOrderModal()">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <form id="newOrderForm">
+        <div class="modal-body">
+          <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 16px;">
+            Ingresa los datos del cliente y del vehículo para aperturar la nueva orden de trabajo en el taller.
+          </p>
+
+          <h5 style="font-size: 12px; text-transform: uppercase; color: var(--accent-orange); margin-bottom: 10px; font-weight: 800;">
+            1. Datos del Propietario
+          </h5>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Nombre Completo *</label>
+              <input type="text" id="newOwner" class="input-field" placeholder="Ej. Rodrigo Fernández" required>
+            </div>
+            <div class="form-group">
+              <label>WhatsApp / Teléfono *</label>
+              <input type="text" id="newPhone" class="input-field" placeholder="Ej. +591 71234567" required>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Correo Electrónico (Opcional)</label>
+            <input type="email" id="newEmail" class="input-field" placeholder="cliente@correo.com">
+          </div>
+
+          <h5 style="font-size: 12px; text-transform: uppercase; color: var(--accent-orange); margin: 16px 0 10px; font-weight: 800;">
+            2. Datos del Vehículo
+          </h5>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Número de Placa *</label>
+              <input type="text" id="newPlate" class="input-field" placeholder="Ej. 4587-ABC" style="text-transform: uppercase; font-family: monospace; font-weight: 700;" required>
+            </div>
+            <div class="form-group">
+              <label>Marca *</label>
+              <input type="text" id="newBrand" class="input-field" placeholder="Ej. Toyota, Nissan, Ford" required>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Modelo *</label>
+              <input type="text" id="newModel" class="input-field" placeholder="Ej. Hilux, Corolla, Kicks" required>
+            </div>
+            <div class="form-group">
+              <label>Año de Fabricación</label>
+              <input type="text" id="newYear" class="input-field" placeholder="Ej. 2021">
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Color de Carrocería</label>
+              <input type="text" id="newColor" class="input-field" placeholder="Ej. Blanco Nácar">
+            </div>
+            <div class="form-group">
+              <label>Kilometraje Actual</label>
+              <input type="text" id="newKm" class="input-field" placeholder="Ej. 45.300">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Nivel de Combustible</label>
+            <select id="newFuel" class="input-field">
+              <option value="1/4">1/4 (Reserva baja)</option>
+              <option value="1/2" selected>1/2 Tanque</option>
+              <option value="3/4">3/4 Tanque</option>
+              <option value="Lleno">Tanque Lleno</option>
+            </select>
+          </div>
+
+          <h5 style="font-size: 12px; text-transform: uppercase; color: var(--accent-orange); margin: 16px 0 10px; font-weight: 800;">
+            3. Motivo de Ingreso
+          </h5>
+          <div class="form-group">
+            <label>Falla Reportada o Servicio Solicitado *</label>
+            <textarea id="newIssue" class="editable-textarea" placeholder="Describe el síntoma o motivo de visita: ruidos, cambio de aceite, afinado, luces de tablero..." required></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeNewOrderModal()">Cancelar</button>
+          <button type="submit" class="btn btn-primary">
+            <i class="fa-solid fa-plus"></i> Aperturar Orden de Trabajo
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Portal de Seguimiento para Clientes -->
+  <div class="modal-overlay" id="modalTracking">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-car-side"></i> Portal de Seguimiento al Cliente</h3>
+        <button class="btn btn-icon btn-sm btn-secondary" onclick="closeTrackingModal()">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 14px;">
+          Esta vista es accesible tanto para los clientes como para recepción para ver el progreso transparente del automóvil.
+        </p>
+
+        <div style="display: flex; gap: 8px; margin-bottom: 20px;">
+          <input type="text" id="trackingSearchInput" class="input-field" placeholder="Ingresa la placa (ej: 4587-KLP) o número de orden (OT-2408)..." style="flex: 1; text-transform: uppercase;">
+          <button class="btn btn-primary" onclick="searchTracking()">
+            <i class="fa-solid fa-magnifying-glass"></i> Consultar
+          </button>
+        </div>
+
+        <div id="trackingResult">
+          <!-- Filled dynamically -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Configuración de Base de Datos / Supabase -->
+  <div class="modal-overlay" id="modalDb">
+    <div class="modal-box" style="max-width: 680px;">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-database"></i> Conexión a Base de Datos (Supabase / SQLite)</h3>
+        <button class="btn btn-icon btn-sm btn-secondary" onclick="closeDbModal()">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      <form id="supabaseConfigForm">
+        <div class="modal-body">
+          <div id="currentDbStatusText" style="background: #0e1522; padding: 12px 16px; border-radius: var(--radius-md); border: 1px solid var(--border-color); margin-bottom: 16px; font-size: 13px;">
+            <!-- Filled dynamically -->
+          </div>
+
+          <h4 style="font-size: 13px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px;">
+            Conectar con tu proyecto en Supabase Cloud (PostgreSQL)
+          </h4>
+          <p style="font-size: 12.5px; color: var(--text-secondary); margin-bottom: 14px; line-height: 1.5;">
+            Si deseas sincronizar tus datos en la nube con Supabase, crea un proyecto gratuito en <a href="https://supabase.com" target="_blank" style="color: var(--accent-cyan); text-decoration: underline;">supabase.com</a>, pega las credenciales a continuación y ejecuta el script SQL.
+          </p>
+
+          <div class="form-group">
+            <label>Supabase Project URL</label>
+            <input type="url" id="supabaseUrlInput" class="input-field" placeholder="https://xyzcompany.supabase.co">
+          </div>
+
+          <div class="form-group">
+            <label>Supabase Anon Key (Public API Key)</label>
+            <input type="password" id="supabaseKeyInput" class="input-field" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...">
+          </div>
+
+          <div style="margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--border-color);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <span style="font-size: 12px; font-weight: 700; color: var(--text-secondary);">ESQUEMA SQL PARA SUPABASE (Script listo)</span>
+              <button type="button" class="btn btn-cyan btn-sm" onclick="copySqlSchema()">
+                <i class="fa-solid fa-copy"></i> Copiar Script SQL
+              </button>
+            </div>
+            <p style="font-size: 11.5px; color: var(--text-muted); line-height: 1.4;">
+              Copia el script y pégalo en la sección <strong>SQL Editor</strong> de tu panel de Supabase. El archivo <code>supabase_schema.sql</code> también se encuentra en la raíz de tu proyecto.
+            </p>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeDbModal()">Cerrar</button>
+          <button type="submit" id="btnTestSupabase" class="btn btn-primary">
+            <i class="fa-solid fa-plug"></i> Probar y Guardar Conexión
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- Client Script -->
+  <script src="js/app.js"></script>
+</body>
+</html>
