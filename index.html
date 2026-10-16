@@ -5,11 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Fluxo Garage | Sistema Integral de Gestión de Taller Automotriz</title>
   
-  <!-- Favicon / Meta -->
-  <link rel="icon" type="image/svg+xml" href="assets/logo.svg">
   <meta name="description" content="Plataforma profesional para control de órdenes de trabajo, diagnóstico, repuestos y seguimiento de clientes en talleres mecánicos.">
 
-  <!-- Google Fonts: Inter -->
+  <!-- Google Fonts: Inter & Roboto Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Roboto+Mono:wght@600;700&display=swap" rel="stylesheet">
@@ -17,8 +15,833 @@
   <!-- Font Awesome 6 -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
-  <!-- App Stylesheet -->
-  <link rel="stylesheet" href="css/style.css">
+  <!-- Supabase Client CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- Complete Flat Minimalist Stylesheet Embedded (Zero-Dependency Loading) -->
+  <style>
+    :root {
+      --bg-main: #0B0F17;
+      --bg-header: #0E1522;
+      --bg-card: #131B2A;
+      --bg-card-hover: #1A2438;
+      --bg-input: #0A0E17;
+      --border-color: #222F44;
+      --border-highlight: #334460;
+      
+      --text-primary: #FFFFFF;
+      --text-secondary: #94A3B8;
+      --text-muted: #64748B;
+
+      /* Automotive Flat Palette */
+      --accent-orange: #FF5C00;
+      --accent-orange-hover: #E04E00;
+      --accent-orange-soft: #2E1B12;
+      
+      --accent-cyan: #06B6D4;
+      --accent-cyan-hover: #0891B2;
+      --accent-cyan-soft: #0E2936;
+      
+      --accent-green: #10B981;
+      --accent-green-hover: #059669;
+      --accent-green-soft: #0F2D24;
+
+      --accent-amber: #F59E0B;
+      --accent-amber-hover: #D97706;
+      --accent-amber-soft: #2D2311;
+
+      --accent-red: #EF4444;
+      --accent-red-hover: #DC2626;
+      --accent-red-soft: #2E1515;
+
+      --accent-purple: #8B5CF6;
+      --accent-purple-soft: #221838;
+
+      --radius-sm: 4px;
+      --radius-md: 8px;
+      --radius-lg: 10px;
+      --radius-full: 9999px;
+      
+      --font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg-main);
+      color: var(--text-primary);
+      font-family: var(--font-family);
+      font-size: 14px;
+      line-height: 1.5;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg-main); }
+    ::-webkit-scrollbar-thumb { background: var(--border-highlight); border-radius: 2px; }
+
+    /* Header */
+    .app-header {
+      background-color: var(--bg-header);
+      border-bottom: 2px solid var(--border-color);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .header-container {
+      max-width: 1520px;
+      margin: 0 auto;
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+    }
+
+    .brand-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      text-decoration: none;
+    }
+
+    .brand-logo-svg {
+      height: 40px;
+      width: auto;
+      display: block;
+    }
+
+    /* DB Pill */
+    .db-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+      background: var(--accent-green-soft);
+      border: 1px solid var(--accent-green);
+      color: #34D399;
+      cursor: pointer;
+    }
+    .db-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: currentColor;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 9px 16px;
+      font-size: 13px;
+      font-weight: 700;
+      font-family: inherit;
+      border-radius: var(--radius-sm);
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+      white-space: nowrap;
+      text-decoration: none;
+    }
+
+    .btn-primary {
+      background-color: var(--accent-orange);
+      color: #FFFFFF;
+      border-color: var(--accent-orange);
+    }
+    .btn-primary:hover {
+      background-color: var(--accent-orange-hover);
+      border-color: var(--accent-orange-hover);
+    }
+
+    .btn-secondary {
+      background-color: var(--bg-card);
+      color: var(--text-primary);
+      border-color: var(--border-color);
+    }
+    .btn-secondary:hover {
+      background-color: var(--bg-card-hover);
+      border-color: var(--border-highlight);
+    }
+
+    .btn-whatsapp {
+      background-color: #25D366;
+      color: #0B0F17;
+      border-color: #25D366;
+    }
+    .btn-whatsapp:hover {
+      background-color: #1EBE5D;
+      border-color: #1EBE5D;
+    }
+
+    .btn-danger {
+      background-color: var(--accent-red);
+      color: #FFFFFF;
+      border-color: var(--accent-red);
+    }
+    .btn-danger:hover {
+      background-color: var(--accent-red-hover);
+      border-color: var(--accent-red-hover);
+    }
+
+    .btn-sm {
+      padding: 6px 12px;
+      font-size: 12px;
+    }
+
+    /* Layout */
+    .main-wrapper {
+      max-width: 1520px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    /* Metrics Grid */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .metric-card {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-left: 4px solid var(--border-highlight);
+      border-radius: var(--radius-md);
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .metric-card.accent-orange { border-left-color: var(--accent-orange); }
+    .metric-card.accent-cyan { border-left-color: var(--accent-cyan); }
+    .metric-card.accent-amber { border-left-color: var(--accent-amber); }
+    .metric-card.accent-green { border-left-color: var(--accent-green); }
+    .metric-card.accent-purple { border-left-color: var(--accent-purple); }
+
+    .metric-info h4 {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--text-muted);
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    .metric-info .metric-value {
+      font-size: 26px;
+      font-weight: 800;
+      color: var(--text-primary);
+      line-height: 1.1;
+    }
+    .metric-info .metric-sub {
+      font-size: 11px;
+      color: var(--text-secondary);
+      margin-top: 4px;
+    }
+    .metric-icon-box {
+      width: 44px;
+      height: 44px;
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+    .metric-card.accent-orange .metric-icon-box { background-color: var(--accent-orange-soft); color: var(--accent-orange); }
+    .metric-card.accent-cyan .metric-icon-box { background-color: var(--accent-cyan-soft); color: var(--accent-cyan); }
+    .metric-card.accent-amber .metric-icon-box { background-color: var(--accent-amber-soft); color: var(--accent-amber); }
+    .metric-card.accent-green .metric-icon-box { background-color: var(--accent-green-soft); color: var(--accent-green); }
+    .metric-card.accent-purple .metric-icon-box { background-color: var(--accent-purple-soft); color: var(--accent-purple); }
+
+    /* Control Bar */
+    .control-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .search-wrapper {
+      position: relative;
+      flex: 1;
+      min-width: 280px;
+      max-width: 440px;
+    }
+    .search-icon {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      pointer-events: none;
+    }
+    .search-input {
+      width: 100%;
+      height: 42px;
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      padding: 0 16px 0 40px;
+      color: var(--text-primary);
+      font-family: inherit;
+      font-size: 13.5px;
+    }
+    .search-input:focus { outline: none; border-color: var(--accent-orange); }
+
+    .filter-chips {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+    }
+    .chip {
+      padding: 7px 14px;
+      border-radius: var(--radius-sm);
+      font-size: 12.5px;
+      font-weight: 700;
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-color);
+      color: var(--text-secondary);
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .chip:hover { background-color: var(--bg-card-hover); color: var(--text-primary); }
+    .chip.active { background-color: var(--accent-orange); border-color: var(--accent-orange); color: #FFFFFF; }
+
+    /* Workspace */
+    .workspace-grid {
+      display: grid;
+      grid-template-columns: 380px 1fr;
+      gap: 20px;
+      align-items: start;
+    }
+
+    .orders-panel {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      max-height: calc(100vh - 230px);
+    }
+
+    .panel-header {
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background-color: #101726;
+    }
+    .panel-header h3 {
+      font-size: 13.5px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .orders-scroll-list {
+      overflow-y: auto;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .order-card {
+      background-color: #0E1524;
+      border: 1px solid var(--border-color);
+      border-left: 4px solid var(--border-highlight);
+      border-radius: var(--radius-sm);
+      padding: 14px;
+      cursor: pointer;
+      transition: background-color 0.15s ease, border-color 0.15s ease;
+    }
+    .order-card:hover { background-color: var(--bg-card-hover); border-color: var(--border-highlight); }
+    .order-card.selected {
+      background-color: #172236;
+      border-color: var(--accent-orange);
+      border-left: 4px solid var(--accent-orange);
+    }
+
+    .order-card-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    .plate-tag {
+      font-family: 'Roboto Mono', monospace;
+      font-weight: 800;
+      font-size: 13px;
+      letter-spacing: 0.8px;
+      background-color: #1E2B3E;
+      color: #FFFFFF;
+      padding: 3px 8px;
+      border-radius: var(--radius-sm);
+      border: 1px solid #334460;
+    }
+    .order-id-label { font-size: 11.5px; color: var(--text-muted); font-weight: 700; }
+    .order-card-car { font-size: 14.5px; font-weight: 700; color: var(--text-primary); margin-bottom: 4px; }
+    .order-card-client { font-size: 12px; color: var(--text-secondary); display: flex; align-items: center; gap: 6px; margin-bottom: 10px; }
+
+    .order-card-bottom {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 8px;
+      border-top: 1px solid var(--border-color);
+    }
+
+    /* Stage Pills */
+    .stage-pill {
+      font-size: 11px;
+      font-weight: 800;
+      padding: 4px 9px;
+      border-radius: var(--radius-sm);
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+    .stage-0 { background-color: #242E3D; color: #94A3B8; border: 1px solid #3B4B60; }
+    .stage-1 { background-color: var(--accent-cyan-soft); color: #22D3EE; border: 1px solid var(--accent-cyan); }
+    .stage-2 { background-color: var(--accent-amber-soft); color: #FBBF24; border: 1px solid var(--accent-amber); }
+    .stage-3 { background-color: var(--accent-orange-soft); color: #FB923C; border: 1px solid var(--accent-orange); }
+    .stage-4 { background-color: var(--accent-purple-soft); color: #C084FC; border: 1px solid var(--accent-purple); }
+    .stage-5 { background-color: var(--accent-green-soft); color: #34D399; border: 1px solid var(--accent-green); }
+    .stage-6 { background-color: #1F2735; color: #94A3B8; border: 1px solid #334155; }
+
+    .order-card-price { font-size: 13.5px; font-weight: 800; color: var(--text-primary); }
+
+    /* Detail Panel */
+    .detail-panel {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      min-height: calc(100vh - 230px);
+    }
+
+    .vehicle-hero {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 20px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border-color);
+    }
+    .vehicle-title-area h2 {
+      font-size: 24px;
+      font-weight: 900;
+      color: var(--text-primary);
+      margin-bottom: 4px;
+    }
+    .vehicle-specs {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+    .vehicle-specs span { display: flex; align-items: center; gap: 5px; }
+
+    .hero-actions { display: flex; align-items: center; gap: 8px; }
+
+    /* Stepper */
+    .stepper-container {
+      background-color: #0E1524;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      padding: 16px;
+    }
+    .stepper-label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .stepper-label span {
+      font-size: 11px;
+      text-transform: uppercase;
+      font-weight: 800;
+      color: var(--text-muted);
+    }
+    .stepper-label strong {
+      font-size: 13px;
+      font-weight: 800;
+      color: var(--accent-orange);
+    }
+
+    .steps-bar {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+    .step-bar-item { height: 6px; background-color: #222F44; border-radius: 2px; }
+    .step-bar-item.completed { background-color: var(--accent-orange); }
+    .step-bar-item.current { background-color: var(--accent-cyan); }
+
+    .stepper-buttons {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 6px;
+    }
+    .step-btn {
+      padding: 8px 4px;
+      font-size: 11.5px;
+      font-weight: 700;
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      color: var(--text-secondary);
+      cursor: pointer;
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .step-btn:hover { background-color: var(--bg-card-hover); color: var(--text-primary); border-color: var(--border-highlight); }
+    .step-btn.active { background-color: var(--accent-orange); color: #FFFFFF; border-color: var(--accent-orange); }
+
+    /* Tabs */
+    .detail-tabs-bar {
+      display: flex;
+      border-bottom: 2px solid var(--border-color);
+      gap: 20px;
+    }
+    .tab-link {
+      padding: 10px 4px;
+      font-size: 13.5px;
+      font-weight: 700;
+      color: var(--text-muted);
+      border-bottom: 3px solid transparent;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .tab-link:hover { color: var(--text-primary); }
+    .tab-link.active { color: var(--accent-orange); border-bottom-color: var(--accent-orange); }
+
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    .facts-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .fact-box {
+      background-color: #0E1524;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      padding: 12px;
+    }
+    .fact-box label {
+      display: block;
+      font-size: 11px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      font-weight: 800;
+      margin-bottom: 4px;
+    }
+    .fact-box .fact-value { font-size: 14px; font-weight: 800; color: var(--text-primary); }
+
+    .section-block { margin-bottom: 20px; }
+    .section-title {
+      font-size: 12.5px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--text-secondary);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .editable-textarea {
+      width: 100%;
+      min-height: 80px;
+      background-color: #0A0E17;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      padding: 12px;
+      color: var(--text-primary);
+      font-family: inherit;
+      font-size: 13px;
+      line-height: 1.5;
+      resize: vertical;
+    }
+    .editable-textarea:focus { outline: none; border-color: var(--accent-orange); }
+
+    /* Checklist */
+    .checklist-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+    .check-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 14px;
+      background-color: #0E1524;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+    }
+    .check-item:hover { background-color: var(--bg-card-hover); border-color: var(--border-highlight); }
+    .check-info { display: flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 700; }
+    .check-info i { color: var(--text-muted); width: 18px; text-align: center; }
+
+    .check-switch {
+      position: relative;
+      display: inline-block;
+      width: 36px;
+      height: 20px;
+    }
+    .check-switch input { opacity: 0; width: 0; height: 0; }
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: #334460;
+      transition: .15s;
+      border-radius: 2px;
+    }
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 14px;
+      width: 14px;
+      left: 3px;
+      bottom: 3px;
+      background-color: #FFFFFF;
+      transition: .15s;
+      border-radius: 2px;
+    }
+    input:checked + .slider { background-color: var(--accent-green); }
+    input:checked + .slider:before { transform: translateX(16px); }
+
+    /* Parts Table */
+    .parts-table-wrap {
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+    .parts-table { width: 100%; border-collapse: collapse; text-align: left; }
+    .parts-table th {
+      background-color: #0E1524;
+      padding: 10px 14px;
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border-color);
+    }
+    .parts-table td { padding: 12px 14px; font-size: 13px; border-bottom: 1px solid var(--border-color); }
+    .parts-table tr:last-child td { border-bottom: none; }
+    .parts-table tr:hover td { background-color: #162032; }
+
+    .item-badge {
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+      padding: 3px 6px;
+      border-radius: var(--radius-sm);
+    }
+    .badge-part { background-color: var(--accent-cyan-soft); color: #38BDF8; border: 1px solid var(--accent-cyan); }
+    .badge-service { background-color: var(--accent-amber-soft); color: #FBBF24; border: 1px solid var(--accent-amber); }
+
+    .parts-total-card {
+      background-color: #0E1524;
+      border: 1px solid var(--border-color);
+      border-left: 4px solid var(--accent-orange);
+      border-radius: var(--radius-sm);
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .total-label { font-size: 13px; color: var(--text-secondary); font-weight: 700; }
+    .total-figure { font-size: 26px; font-weight: 900; color: var(--accent-orange); }
+
+    .add-part-bar {
+      display: grid;
+      grid-template-columns: 2fr 1fr 90px 120px auto;
+      gap: 8px;
+      align-items: center;
+      margin-top: 12px;
+    }
+    .input-field {
+      height: 38px;
+      background-color: #0A0E17;
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      padding: 0 12px;
+      color: var(--text-primary);
+      font-family: inherit;
+      font-size: 13px;
+    }
+    .input-field:focus { outline: none; border-color: var(--accent-orange); }
+
+    /* Modals */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background-color: rgba(5, 8, 14, 0.88);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .modal-overlay.open { display: flex; }
+
+    .modal-box {
+      background-color: #131B2A;
+      border: 2px solid var(--border-highlight);
+      border-radius: var(--radius-md);
+      width: 100%;
+      max-width: 640px;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    .modal-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border-color);
+      background-color: #0E1524;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .modal-header h3 { font-size: 15px; font-weight: 800; display: flex; align-items: center; gap: 8px; }
+    .modal-body { padding: 20px; }
+    .modal-footer {
+      padding: 14px 20px;
+      border-top: 1px solid var(--border-color);
+      background-color: #0E1524;
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+    .form-group { margin-bottom: 12px; }
+    .form-group label {
+      display: block;
+      font-size: 11.5px;
+      font-weight: 800;
+      color: var(--text-secondary);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+    }
+    .form-group .input-field, .form-group textarea { width: 100%; }
+
+    /* Tracking */
+    .tracking-banner {
+      background-color: #162032;
+      border: 2px solid var(--accent-orange);
+      border-radius: var(--radius-sm);
+      padding: 18px;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .tracking-status-badge {
+      display: inline-block;
+      padding: 6px 16px;
+      border-radius: var(--radius-sm);
+      font-weight: 800;
+      font-size: 13.5px;
+      margin-top: 8px;
+    }
+
+    /* Toast */
+    .toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      pointer-events: none;
+    }
+    .toast {
+      background-color: #172236;
+      color: #FFFFFF;
+      border: 1px solid var(--border-highlight);
+      border-left: 5px solid var(--accent-orange);
+      padding: 12px 18px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      pointer-events: auto;
+    }
+    .toast.success { border-left-color: var(--accent-green); }
+    .toast.error { border-left-color: var(--accent-red); }
+
+    /* Print */
+    @media print {
+      body { background: #FFFFFF !important; color: #000000 !important; }
+      .app-header, .metrics-grid, .control-bar, .orders-panel, .hero-actions, .stepper-container, .detail-tabs-bar, .add-part-bar, .btn { display: none !important; }
+      .main-wrapper { max-width: 100% !important; padding: 0 !important; }
+      .workspace-grid { display: block !important; }
+      .detail-panel { border: none !important; padding: 0 !important; background: #FFFFFF !important; color: #000000 !important; }
+      .tab-content { display: block !important; }
+      .plate-tag { background: #EEE !important; color: #000 !important; border: 1px solid #000 !important; }
+      .fact-box, .parts-table-wrap, .parts-total-card, .check-item { background: #FAFAFA !important; border-color: #DDD !important; color: #000 !important; }
+      .parts-table th { background: #EEE !important; color: #000 !important; }
+    }
+
+    @media (max-width: 1200px) {
+      .metrics-grid { grid-template-columns: repeat(3, 1fr); }
+      .workspace-grid { grid-template-columns: 340px 1fr; }
+    }
+    @media (max-width: 900px) {
+      .metrics-grid { grid-template-columns: repeat(2, 1fr); }
+      .workspace-grid { grid-template-columns: 1fr; }
+      .header-container { flex-direction: column; align-items: stretch; }
+      .steps-bar, .stepper-buttons { grid-template-columns: repeat(3, 1fr); }
+      .facts-grid { grid-template-columns: repeat(2, 1fr); }
+      .add-part-bar { grid-template-columns: 1fr; }
+    }
+  </style>
 </head>
 <body>
 
@@ -26,29 +849,49 @@
   <header class="app-header">
     <div class="header-container">
       <div class="brand-wrapper">
-        <a href="/" style="display: flex; align-items: center;">
-          <img src="assets/logo.svg" alt="Fluxo Garage Logo" class="brand-logo">
+        <a href="/" style="display: flex; align-items: center; text-decoration: none;">
+          <!-- High-End Flat Vector Logo Inline (Zero Broken Images) -->
+          <svg class="brand-logo-svg" viewBox="0 0 500 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <g transform="translate(10, 10)">
+              <polygon points="50,4 92,26 92,74 50,96 8,74 8,26" fill="#1E293B" stroke="#334155" stroke-width="2.5"/>
+              <polygon points="50,11 85,29 85,71 50,89 15,71 15,29" fill="none" stroke="#FF5C00" stroke-width="2"/>
+              <circle cx="50" cy="50" r="26" fill="#0B0F17" stroke="#334155" stroke-width="2"/>
+              <circle cx="50" cy="50" r="19" fill="none" stroke="#475569" stroke-dasharray="4 3" stroke-width="1.5"/>
+              <path d="M37 37 L63 63 M60 60 L68 68 C70 70 73 70 75 68 C77 66 77 63 75 61 L67 53" stroke="#FF5C00" stroke-width="4.5" stroke-linecap="round"/>
+              <path d="M33 33 L27 27 C24 24 27 18 32 18 C34 18 36 19 38 21 L38 27 L44 33" stroke="#FF5C00" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+              <circle cx="50" cy="50" r="4" fill="#FFFFFF"/>
+              <circle cx="50" cy="50" r="2" fill="#FF5C00"/>
+              <path d="M80 43 L85 50 L80 57" stroke="#FF5C00" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </g>
+            <text x="125" y="62" font-family="'Inter', system-ui, sans-serif" font-weight="900" font-size="44" letter-spacing="3" fill="#FFFFFF">FLUXO</text>
+            <rect x="296" y="32" width="9" height="9" rx="2" fill="#FF5C00"/>
+            <text x="312" y="62" font-family="'Inter', system-ui, sans-serif" font-weight="800" font-size="44" letter-spacing="4" fill="#FF5C00">GARAGE</text>
+            <rect x="126" y="76" width="220" height="18" rx="3" fill="#1E293B"/>
+            <text x="134" y="89" font-family="'Inter', system-ui, sans-serif" font-weight="700" font-size="9.5" letter-spacing="2.2" fill="#94A3B8">AUTOMOTIVE SYSTEMS &amp; WORKSHOP</text>
+            <circle cx="340" cy="85" r="3" fill="#10B981"/>
+          </svg>
         </a>
 
-        <!-- Database Status Pill (Clickable) -->
-        <div id="dbStatusPill" class="db-pill sqlite-active" onclick="openDbModal()" title="Configuración de Base de Datos (Supabase / SQLite)">
+        <!-- Database Status Pill -->
+        <div id="dbStatusPill" class="db-pill" onclick="openDbModal()" title="Estado de Base de Datos Supabase">
           <span class="db-dot"></span>
-          <span id="dbStatusText">SQLite Local</span>
-          <i class="fa-solid fa-gear" style="font-size: 11px; margin-left: 3px; opacity: 0.7;"></i>
+          <span id="dbStatusText">Supabase Cloud</span>
+          <i class="fa-solid fa-cloud" style="font-size: 11px; margin-left: 3px;"></i>
         </div>
       </div>
 
       <div class="header-actions">
+        <!-- Direct Official Workshop WhatsApp -->
         <a href="https://wa.me/59169710419?text=Hola%20FLUXO%20GARAGE,%20deseo%20hacer%20una%20consulta" target="_blank" class="btn btn-whatsapp btn-sm" title="WhatsApp Oficial del Taller">
           <i class="fa-brands fa-whatsapp"></i> +591 69710419
         </a>
         <button class="btn btn-secondary btn-sm" onclick="openTrackingModal()">
           <i class="fa-solid fa-magnifying-glass-location"></i> Portal Cliente
         </button>
-        <a href="/api/export/csv" class="btn btn-secondary btn-sm" title="Descargar reporte en formato CSV / Excel">
+        <button class="btn btn-secondary btn-sm" onclick="exportCsv()" title="Exportar reporte en CSV">
           <i class="fa-solid fa-file-arrow-down"></i> Exportar
-        </a>
-        <button class="btn btn-secondary btn-sm" onclick="resetDemoData()" title="Reiniciar base de datos a valores de prueba">
+        </button>
+        <button class="btn btn-secondary btn-sm" onclick="resetDemoData()" title="Restaurar órdenes de prueba">
           <i class="fa-solid fa-rotate-left"></i> Demo
         </button>
         <button class="btn btn-primary" onclick="openNewOrderModal()">
@@ -150,13 +993,13 @@
           </span>
         </div>
         <div class="orders-scroll-list" id="ordersList">
-          <!-- Populated dynamically by app.js -->
+          <!-- Populated dynamically -->
         </div>
       </aside>
 
       <!-- Right Column: Interactive Detail Workspace -->
       <section class="detail-panel" id="detailWorkspace">
-        <!-- Populated dynamically by app.js -->
+        <!-- Populated dynamically -->
       </section>
 
     </section>
@@ -268,7 +1111,7 @@
       </div>
       <div class="modal-body">
         <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 14px;">
-          Esta vista es accesible tanto para los clientes como para recepción para ver el progreso transparente del automóvil.
+          Consulta en tiempo real el progreso de tu vehículo ingresando la placa o el código de orden.
         </p>
 
         <div style="display: flex; gap: 8px; margin-bottom: 20px;">
@@ -278,71 +1121,684 @@
           </button>
         </div>
 
-        <div id="trackingResult">
-          <!-- Filled dynamically -->
-        </div>
+        <div id="trackingResult"></div>
       </div>
-    </div>
-  </div>
-
-  <!-- Modal: Configuración de Base de Datos / Supabase -->
-  <div class="modal-overlay" id="modalDb">
-    <div class="modal-box" style="max-width: 680px;">
-      <div class="modal-header">
-        <h3><i class="fa-solid fa-database"></i> Conexión a Base de Datos (Supabase / SQLite)</h3>
-        <button class="btn btn-icon btn-sm btn-secondary" onclick="closeDbModal()">
-          <i class="fa-solid fa-xmark"></i>
-        </button>
-      </div>
-      <form id="supabaseConfigForm">
-        <div class="modal-body">
-          <div id="currentDbStatusText" style="background: #0e1522; padding: 12px 16px; border-radius: var(--radius-md); border: 1px solid var(--border-color); margin-bottom: 16px; font-size: 13px;">
-            <!-- Filled dynamically -->
-          </div>
-
-          <h4 style="font-size: 13px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px;">
-            Conectar con tu proyecto en Supabase Cloud (PostgreSQL)
-          </h4>
-          <p style="font-size: 12.5px; color: var(--text-secondary); margin-bottom: 14px; line-height: 1.5;">
-            Si deseas sincronizar tus datos en la nube con Supabase, crea un proyecto gratuito en <a href="https://supabase.com" target="_blank" style="color: var(--accent-cyan); text-decoration: underline;">supabase.com</a>, pega las credenciales a continuación y ejecuta el script SQL.
-          </p>
-
-          <div class="form-group">
-            <label>Supabase Project URL</label>
-            <input type="url" id="supabaseUrlInput" class="input-field" placeholder="https://xyzcompany.supabase.co">
-          </div>
-
-          <div class="form-group">
-            <label>Supabase Anon Key (Public API Key)</label>
-            <input type="password" id="supabaseKeyInput" class="input-field" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...">
-          </div>
-
-          <div style="margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--border-color);">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-              <span style="font-size: 12px; font-weight: 700; color: var(--text-secondary);">ESQUEMA SQL PARA SUPABASE (Script listo)</span>
-              <button type="button" class="btn btn-cyan btn-sm" onclick="copySqlSchema()">
-                <i class="fa-solid fa-copy"></i> Copiar Script SQL
-              </button>
-            </div>
-            <p style="font-size: 11.5px; color: var(--text-muted); line-height: 1.4;">
-              Copia el script y pégalo en la sección <strong>SQL Editor</strong> de tu panel de Supabase. El archivo <code>supabase_schema.sql</code> también se encuentra en la raíz de tu proyecto.
-            </p>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" onclick="closeDbModal()">Cerrar</button>
-          <button type="submit" id="btnTestSupabase" class="btn btn-primary">
-            <i class="fa-solid fa-plug"></i> Probar y Guardar Conexión
-          </button>
-        </div>
-      </form>
     </div>
   </div>
 
   <!-- Toast Notification Container -->
   <div class="toast-container" id="toastContainer"></div>
 
-  <!-- Client Script -->
-  <script src="js/app.js"></script>
+  <!-- Bulletproof Reactive Application Script Embedded -->
+  <script>
+    // Supabase Cloud Project Configuration (Pre-configured & Connected)
+    const SUPABASE_URL = 'https://cdvnsvwyubdzrjphvuom.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_pfF9xZ-mRKSjwSJRgykx1Q_5JulEgl9';
+    const WORKSHOP_PHONE = '59169710419';
+    const WORKSHOP_PHONE_DISPLAY = '+591 69710419';
+
+    let supabase = null;
+    if (window.supabase) {
+      try {
+        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+      } catch (e) {
+        console.warn('Supabase init warning:', e);
+      }
+    }
+
+    const STAGES = [
+      { id: 0, label: 'Recibido', color: 'stage-0', icon: 'fa-box-archive' },
+      { id: 1, label: 'Diagnóstico', color: 'stage-1', icon: 'fa-stethoscope' },
+      { id: 2, label: 'Presupuestado', color: 'stage-2', icon: 'fa-file-invoice-dollar' },
+      { id: 3, label: 'En Reparación', color: 'stage-3', icon: 'fa-screwdriver-wrench' },
+      { id: 4, label: 'Control Calidad', color: 'stage-4', icon: 'fa-shield-halved' },
+      { id: 5, label: 'Listo Entrega', color: 'stage-5', icon: 'fa-key' },
+      { id: 6, label: 'Entregado', color: 'stage-6', icon: 'fa-circle-check' }
+    ];
+
+    const CHECKLIST_FIELDS = [
+      { key: 'bodywork', label: 'Chapería, parachoques y pintura', icon: 'fa-car-burst' },
+      { key: 'lights', label: 'Faros, stop y luces de guiñe', icon: 'fa-lightbulb' },
+      { key: 'glass', label: 'Parabrisas, vidrios y espejos', icon: 'fa-window-maximize' },
+      { key: 'tires', label: 'Neumáticos y llanta de auxilio', icon: 'fa-ring' },
+      { key: 'interior', label: 'Tapicería, alfombra y radio', icon: 'fa-couch' },
+      { key: 'tools', label: 'Gata hidráulica y llave de ruedas', icon: 'fa-wrench' },
+      { key: 'docs', label: 'Rua / Documentos y SOAT', icon: 'fa-file-lines' }
+    ];
+
+    let state = {
+      orders: [],
+      selectedId: null,
+      currentFilter: 'all',
+      searchQuery: '',
+      currentTab: 'tab-diagnostic'
+    };
+
+    const formatMoney = (n, cur = 'Bs') => `${cur} ${(Number(n) || 0).toLocaleString('es-BO', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      let icon = 'fa-circle-info';
+      if (type === 'success') icon = 'fa-circle-check';
+      if (type === 'error') icon = 'fa-triangle-exclamation';
+
+      toast.innerHTML = `<i class="fa-solid ${icon}"></i> <span>${message}</span>`;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 250);
+      }, 3000);
+    }
+
+    // Direct Supabase Data Operations
+    async function fetchOrders() {
+      if (supabase) {
+        try {
+          const { data, error } = await supabase.from('orders').select('*').order('created_at', { ascending: false });
+          if (!error && data && data.length > 0) {
+            return data.map(r => ({
+              ...r,
+              checklist: typeof r.checklist === 'string' ? JSON.parse(r.checklist || '{}') : (r.checklist || {}),
+              parts: typeof r.parts === 'string' ? JSON.parse(r.parts || '[]') : (r.parts || [])
+            }));
+          }
+        } catch (e) {
+          console.warn('Supabase fetch error:', e);
+        }
+      }
+
+      // Local storage fallback
+      const local = localStorage.getItem('fluxo_orders_backup');
+      if (local) {
+        try { return JSON.parse(local); } catch(e){}
+      }
+      return [];
+    }
+
+    async function loadData() {
+      state.orders = await fetchOrders();
+      if (state.orders.length > 0 && !state.selectedId) {
+        state.selectedId = state.orders[0].id;
+      }
+      renderMetrics();
+      renderOrdersList();
+      renderCurrentDetail();
+    }
+
+    function renderMetrics() {
+      const all = state.orders;
+      document.getElementById('metricWorkshop').textContent = all.filter(o => o.stage < 6).length;
+      document.getElementById('metricDiag').textContent = all.filter(o => o.stage === 1).length;
+      document.getElementById('metricRepair').textContent = all.filter(o => o.stage === 3).length;
+      document.getElementById('metricReady').textContent = all.filter(o => o.stage === 5).length;
+      const budget = all.reduce((sum, o) => sum + (Number(o.total_amount) || 0), 0);
+      document.getElementById('metricBudget').textContent = formatMoney(budget);
+    }
+
+    function renderOrdersList() {
+      const listEl = document.getElementById('ordersList');
+      let filtered = state.orders;
+
+      if (state.currentFilter !== 'all') {
+        const stageNum = parseInt(state.currentFilter, 10);
+        filtered = filtered.filter(o => o.stage === stageNum);
+      }
+
+      if (state.searchQuery) {
+        const s = state.searchQuery.trim().toUpperCase();
+        filtered = filtered.filter(o => 
+          (o.plate && o.plate.toUpperCase().includes(s)) ||
+          (o.owner_name && o.owner_name.toUpperCase().includes(s)) ||
+          (o.vehicle_model && o.vehicle_model.toUpperCase().includes(s)) ||
+          (o.id && o.id.toUpperCase().includes(s))
+        );
+      }
+
+      if (filtered.length === 0) {
+        listEl.innerHTML = `
+          <div style="text-align: center; padding: 40px 10px; color: var(--text-muted);">
+            <i class="fa-solid fa-car-tunnel" style="font-size: 32px; margin-bottom: 12px; display: block; opacity: 0.5;"></i>
+            <p>No se encontraron vehículos.</p>
+          </div>
+        `;
+        return;
+      }
+
+      listEl.innerHTML = filtered.map(o => {
+        const isSelected = o.id === state.selectedId;
+        const stageObj = STAGES[o.stage] || STAGES[0];
+        return `
+          <div class="order-card ${isSelected ? 'selected' : ''}" onclick="selectOrder('${o.id}')">
+            <div class="order-card-top">
+              <span class="plate-tag">${o.plate}</span>
+              <span class="order-id-label">${o.id}</span>
+            </div>
+            <div class="order-card-car">${o.vehicle_brand || ''} ${o.vehicle_model || ''}</div>
+            <div class="order-card-client">
+              <i class="fa-regular fa-user"></i>
+              <span>${o.owner_name}</span>
+            </div>
+            <div class="order-card-bottom">
+              <span class="stage-pill ${stageObj.color}">
+                <i class="fa-solid ${stageObj.icon}"></i> ${stageObj.label}
+              </span>
+              <span class="order-card-price">${formatMoney(o.total_amount, o.currency)}</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function selectOrder(id) {
+      state.selectedId = id;
+      renderOrdersList();
+      renderCurrentDetail();
+    }
+
+    function getSelectedOrder() {
+      return state.orders.find(o => o.id === state.selectedId) || state.orders[0];
+    }
+
+    function renderCurrentDetail() {
+      const order = getSelectedOrder();
+      const container = document.getElementById('detailWorkspace');
+
+      if (!order) {
+        container.innerHTML = `
+          <div style="text-align: center; padding: 80px 20px; color: var(--text-muted);">
+            <i class="fa-solid fa-wrench" style="font-size: 44px; margin-bottom: 16px; display: block; opacity: 0.4;"></i>
+            <h3>Selecciona o crea una orden de trabajo</h3>
+            <p style="margin-top: 6px;">Gestiona diagnósticos, checklist, repuestos y facturación del vehículo.</p>
+          </div>
+        `;
+        return;
+      }
+
+      const currentStage = STAGES[order.stage] || STAGES[0];
+
+      container.innerHTML = `
+        <div class="vehicle-hero">
+          <div class="vehicle-title-area">
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
+              <span class="plate-tag" style="font-size: 16px; padding: 4px 12px;">${order.plate}</span>
+              <span class="order-id-label" style="font-size: 13px;">${order.id}</span>
+              <span class="stage-pill ${currentStage.color}">${currentStage.label}</span>
+            </div>
+            <h2>${order.vehicle_brand || ''} ${order.vehicle_model || ''} ${order.vehicle_year ? `· ${order.vehicle_year}` : ''}</h2>
+            <div class="vehicle-specs">
+              <span><i class="fa-regular fa-user"></i> ${order.owner_name}</span>
+              ${order.owner_phone ? `<span><i class="fa-solid fa-phone"></i> ${order.owner_phone}</span>` : ''}
+              <span><i class="fa-solid fa-gauge-high"></i> ${order.km || 0} km</span>
+              <span><i class="fa-solid fa-gas-pump"></i> Tanque: ${order.fuel_level || '1/2'}</span>
+            </div>
+          </div>
+
+          <div class="hero-actions">
+            <button class="btn btn-whatsapp btn-sm" onclick="sendWhatsAppNotification()">
+              <i class="fa-brands fa-whatsapp"></i> Notificar
+            </button>
+            <button class="btn btn-secondary btn-sm" onclick="window.print()" title="Imprimir Hoja de Trabajo">
+              <i class="fa-solid fa-print"></i> Proforma
+            </button>
+            <button class="btn btn-danger btn-sm" onclick="confirmDeleteOrder('${order.id}')" title="Eliminar orden">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="stepper-container">
+          <div class="stepper-label">
+            <span>Flujo de Trabajo en Taller</span>
+            <strong>Paso ${order.stage + 1} de 6: ${currentStage.label}</strong>
+          </div>
+          <div class="steps-bar">
+            ${STAGES.slice(0, 6).map((s, idx) => `
+              <div class="step-bar-item ${idx <= order.stage ? 'completed' : ''} ${idx === order.stage ? 'current' : ''}"></div>
+            `).join('')}
+          </div>
+          <div class="stepper-buttons">
+            ${STAGES.slice(0, 6).map((s, idx) => `
+              <button class="step-btn ${idx === order.stage ? 'active' : ''}" onclick="changeOrderStage(${idx})">
+                ${idx + 1}. ${s.label}
+              </button>
+            `).join('')}
+          </div>
+        </div>
+
+        <div class="detail-tabs-bar">
+          <div class="tab-link ${state.currentTab === 'tab-diagnostic' ? 'active' : ''}" onclick="switchTab('tab-diagnostic')">
+            <i class="fa-solid fa-clipboard-check"></i> Ficha & Diagnóstico
+          </div>
+          <div class="tab-link ${state.currentTab === 'tab-checklist' ? 'active' : ''}" onclick="switchTab('tab-checklist')">
+            <i class="fa-solid fa-list-check"></i> Checklist de Recepción
+          </div>
+          <div class="tab-link ${state.currentTab === 'tab-parts' ? 'active' : ''}" onclick="switchTab('tab-parts')">
+            <i class="fa-solid fa-receipt"></i> Presupuesto & Repuestos (${order.parts?.length || 0})
+          </div>
+        </div>
+
+        <!-- Tab 1 -->
+        <div id="tab-diagnostic" class="tab-content ${state.currentTab === 'tab-diagnostic' ? 'active' : ''}">
+          <div class="facts-grid">
+            <div class="fact-box">
+              <label>Kilometraje</label>
+              <div class="fact-value">${order.km || 0} km</div>
+            </div>
+            <div class="fact-box">
+              <label>Combustible</label>
+              <div class="fact-value">${order.fuel_level || '1/2'}</div>
+            </div>
+            <div class="fact-box">
+              <label>Color Carrocería</label>
+              <div class="fact-value">${order.vehicle_color || 'Estándar'}</div>
+            </div>
+            <div class="fact-box">
+              <label>Mecánico Asignado</label>
+              <div class="fact-value">${order.mechanic_name || 'Carlos Méndez'}</div>
+            </div>
+          </div>
+
+          <div class="section-block">
+            <div class="section-title"><i class="fa-solid fa-triangle-exclamation"></i> Motivo de Ingreso / Falla Reportada</div>
+            <p style="background: #0e1522; padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); color: var(--text-primary);">
+              ${order.issue || 'Revisión técnica'}
+            </p>
+          </div>
+
+          <div class="section-block">
+            <div class="section-title" style="justify-content: space-between;">
+              <span><i class="fa-solid fa-stethoscope"></i> Diagnóstico Técnico de Taller</span>
+              <button class="btn btn-primary btn-sm" onclick="saveTechnicalDiagnosis()">
+                <i class="fa-solid fa-floppy-disk"></i> Guardar Diagnóstico
+              </button>
+            </div>
+            <textarea id="diagTextarea" class="editable-textarea" placeholder="Describe los hallazgos técnicos o fallas detectadas...">${order.technical_diagnosis || ''}</textarea>
+          </div>
+        </div>
+
+        <!-- Tab 2: Checklist -->
+        <div id="tab-checklist" class="tab-content ${state.currentTab === 'tab-checklist' ? 'active' : ''}">
+          <p style="color: var(--text-secondary); margin-bottom: 16px; font-size: 13px;">
+            <i class="fa-solid fa-circle-info"></i> Inventario de recepción del vehículo. Los cambios se guardan automáticamente en Supabase.
+          </p>
+          <div class="checklist-grid">
+            ${CHECKLIST_FIELDS.map(f => {
+              const isChecked = order.checklist && order.checklist[f.key] !== false;
+              return `
+                <div class="check-item" onclick="toggleChecklist('${f.key}')">
+                  <div class="check-info">
+                    <i class="fa-solid ${f.icon}"></i>
+                    <span>${f.label}</span>
+                  </div>
+                  <label class="check-switch" onclick="event.stopPropagation()">
+                    <input type="checkbox" id="check-${f.key}" ${isChecked ? 'checked' : ''} onchange="toggleChecklist('${f.key}')">
+                    <span class="slider"></span>
+                  </label>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+
+        <!-- Tab 3: Presupuesto -->
+        <div id="tab-parts" class="tab-content ${state.currentTab === 'tab-parts' ? 'active' : ''}">
+          <div class="parts-table-wrap">
+            <table class="parts-table">
+              <thead>
+                <tr>
+                  <th style="width: 45%;">Descripción del Ítem</th>
+                  <th>Tipo</th>
+                  <th style="text-align: center;">Cant.</th>
+                  <th style="text-align: right;">P. Unitario</th>
+                  <th style="text-align: right;">Subtotal</th>
+                  <th style="width: 50px;"></th>
+                </tr>
+              </thead>
+              <tbody>
+                ${(order.parts && order.parts.length > 0) ? order.parts.map((p, idx) => `
+                  <tr>
+                    <td><strong>${p.description}</strong></td>
+                    <td>
+                      <span class="item-badge ${p.type === 'service' ? 'badge-service' : 'badge-part'}">
+                        ${p.type === 'service' ? 'Mano de Obra' : 'Repuesto'}
+                      </span>
+                    </td>
+                    <td style="text-align: center;">${p.quantity || 1}</td>
+                    <td style="text-align: right;">${formatMoney(p.unit_price, order.currency)}</td>
+                    <td style="text-align: right;"><strong>${formatMoney((p.quantity || 1) * (p.unit_price || 0), order.currency)}</strong></td>
+                    <td style="text-align: center;">
+                      <button class="btn btn-sm" style="color: var(--accent-red); background: transparent; padding: 4px;" onclick="deletePart(${idx})">
+                        <i class="fa-solid fa-xmark"></i>
+                      </button>
+                    </td>
+                  </tr>
+                `).join('') : `
+                  <tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 24px;">No hay ítems en el presupuesto.</td></tr>
+                `}
+              </tbody>
+            </table>
+          </div>
+
+          <div class="add-part-bar">
+            <input type="text" id="partDesc" class="input-field" placeholder="Nombre del repuesto o servicio...">
+            <select id="partType" class="input-field">
+              <option value="part">Repuesto</option>
+              <option value="service">Mano de Obra</option>
+            </select>
+            <input type="number" id="partQty" class="input-field" value="1" min="1" placeholder="Cant.">
+            <input type="number" id="partPrice" class="input-field" placeholder="Precio Bs" min="0" step="0.5">
+            <button class="btn btn-primary btn-sm" onclick="addPart()">
+              <i class="fa-solid fa-plus"></i> Agregar
+            </button>
+          </div>
+
+          <div class="parts-total-card" style="margin-top: 16px;">
+            <div>
+              <span class="total-label">Total Presupuestado (Mano de obra + Repuestos)</span>
+              <p style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">Precios sincronizados con Supabase Cloud.</p>
+            </div>
+            <div class="total-figure">${formatMoney(order.total_amount, order.currency)}</div>
+          </div>
+        </div>
+      `;
+    }
+
+    // Interactive Functions with Live Supabase Sync
+    async function changeOrderStage(newStage) {
+      const order = getSelectedOrder();
+      if (!order) return;
+      order.stage = newStage;
+      if (supabase) {
+        await supabase.from('orders').update({ stage: newStage, updated_at: new Date().toISOString() }).eq('id', order.id);
+      }
+      showToast(`Estado actualizado: ${STAGES[newStage].label}`, 'success');
+      renderOrdersList();
+      renderCurrentDetail();
+      renderMetrics();
+    }
+
+    async function toggleChecklist(key) {
+      const order = getSelectedOrder();
+      if (!order) return;
+      if (!order.checklist) order.checklist = {};
+      order.checklist[key] = !order.checklist[key];
+      if (supabase) {
+        await supabase.from('orders').update({ checklist: order.checklist, updated_at: new Date().toISOString() }).eq('id', order.id);
+      }
+      showToast('Checklist actualizado', 'success');
+      renderCurrentDetail();
+    }
+
+    async function saveTechnicalDiagnosis() {
+      const order = getSelectedOrder();
+      if (!order) return;
+      const val = document.getElementById('diagTextarea').value;
+      order.technical_diagnosis = val;
+      if (supabase) {
+        await supabase.from('orders').update({ technical_diagnosis: val, updated_at: new Date().toISOString() }).eq('id', order.id);
+      }
+      showToast('Diagnóstico guardado en Supabase', 'success');
+    }
+
+    async function addPart() {
+      const order = getSelectedOrder();
+      if (!order) return;
+      const desc = document.getElementById('partDesc').value.trim();
+      const type = document.getElementById('partType').value;
+      const qty = parseInt(document.getElementById('partQty').value, 10) || 1;
+      const price = parseFloat(document.getElementById('partPrice').value) || 0;
+
+      if (!desc) {
+        showToast('Ingresa una descripción del ítem', 'error');
+        return;
+      }
+
+      const newPart = { id: 'p' + Date.now(), description: desc, type, quantity: qty, unit_price: price, total: qty * price };
+      const updatedParts = [...(order.parts || []), newPart];
+      const newTotal = updatedParts.reduce((acc, p) => acc + (p.total || 0), 0);
+
+      order.parts = updatedParts;
+      order.total_amount = newTotal;
+
+      if (supabase) {
+        await supabase.from('orders').update({ parts: updatedParts, total_amount: newTotal, updated_at: new Date().toISOString() }).eq('id', order.id);
+      }
+
+      showToast('Ítem agregado', 'success');
+      renderOrdersList();
+      renderCurrentDetail();
+      renderMetrics();
+    }
+
+    async function deletePart(idx) {
+      const order = getSelectedOrder();
+      if (!order || !order.parts) return;
+      order.parts.splice(idx, 1);
+      const newTotal = order.parts.reduce((acc, p) => acc + (p.quantity * p.unit_price || 0), 0);
+      order.total_amount = newTotal;
+
+      if (supabase) {
+        await supabase.from('orders').update({ parts: order.parts, total_amount: newTotal, updated_at: new Date().toISOString() }).eq('id', order.id);
+      }
+
+      showToast('Ítem eliminado', 'info');
+      renderOrdersList();
+      renderCurrentDetail();
+      renderMetrics();
+    }
+
+    function switchTab(tabId) {
+      state.currentTab = tabId;
+      document.querySelectorAll('.tab-link').forEach(l => l.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      const content = document.getElementById(tabId);
+      if (content) content.classList.add('active');
+      const links = document.querySelectorAll('.tab-link');
+      if (tabId === 'tab-diagnostic' && links[0]) links[0].classList.add('active');
+      if (tabId === 'tab-checklist' && links[1]) links[1].classList.add('active');
+      if (tabId === 'tab-parts' && links[2]) links[2].classList.add('active');
+    }
+
+    function sendWhatsAppNotification() {
+      const order = getSelectedOrder();
+      if (!order) return;
+      const cleanPhone = (order.owner_phone || '').replace(/[^0-9]/g, '');
+      const stageName = (STAGES[order.stage] || STAGES[0]).label;
+      const text = `¡Hola ${order.owner_name}! 👋 Te saludamos de *FLUXO GARAGE*.\n\n` +
+        `🚗 *Vehículo:* ${order.vehicle_brand || ''} ${order.vehicle_model || ''} (Placa: *${order.plate}*)\n` +
+        `📋 *Orden:* ${order.id}\n` +
+        `⚡ *Estado actual:* ${stageName}\n` +
+        `💰 *Presupuesto estimado:* ${formatMoney(order.total_amount, order.currency)}\n\n` +
+        (order.technical_diagnosis ? `🔍 *Diagnóstico:* ${order.technical_diagnosis}\n\n` : '') +
+        `📲 *Línea Oficial WhatsApp Taller:* ${WORKSHOP_PHONE_DISPLAY}\n` +
+        `Cualquier consulta estamos a tu entera disposición. ¡Gracias por confiar en nosotros!`;
+
+      const targetPhone = cleanPhone || WORKSHOP_PHONE;
+      window.open(`https://wa.me/${targetPhone}?text=${encodeURIComponent(text)}`, '_blank');
+    }
+
+    function contactWorkshopWhatsApp(plate = '', orderId = '') {
+      let text = `¡Hola *FLUXO GARAGE*! 👋 Deseo consultar el estado de mi vehículo con placa *${plate}* (Orden *${orderId}*).`;
+      window.open(`https://wa.me/${WORKSHOP_PHONE}?text=${encodeURIComponent(text)}`, '_blank');
+    }
+
+    async function confirmDeleteOrder(id) {
+      if (!confirm(`¿Eliminar la orden ${id}?`)) return;
+      if (supabase) {
+        await supabase.from('orders').delete().eq('id', id);
+      }
+      state.orders = state.orders.filter(o => o.id !== id);
+      state.selectedId = state.orders[0]?.id || null;
+      showToast('Orden eliminada', 'success');
+      renderOrdersList();
+      renderCurrentDetail();
+      renderMetrics();
+    }
+
+    // Modal Handlers
+    function openNewOrderModal() {
+      document.getElementById('newOrderForm').reset();
+      document.getElementById('modalNewOrder').classList.add('open');
+    }
+    function closeNewOrderModal() { document.getElementById('modalNewOrder').classList.remove('open'); }
+
+    async function handleNewOrder(e) {
+      e.preventDefault();
+      const owner_name = document.getElementById('newOwner').value.trim();
+      const owner_phone = document.getElementById('newPhone').value.trim();
+      const owner_email = document.getElementById('newEmail').value.trim();
+      const plate = document.getElementById('newPlate').value.trim().toUpperCase();
+      const vehicle_brand = document.getElementById('newBrand').value.trim();
+      const vehicle_model = document.getElementById('newModel').value.trim();
+      const vehicle_year = document.getElementById('newYear').value.trim();
+      const vehicle_color = document.getElementById('newColor').value.trim();
+      const km = document.getElementById('newKm').value.trim() || '0';
+      const fuel_level = document.getElementById('newFuel').value;
+      const issue = document.getElementById('newIssue').value.trim();
+
+      const newOrder = {
+        id: 'OT-' + Math.floor(2420 + Math.random() * 900),
+        owner_name, owner_phone, owner_email, plate,
+        vehicle_brand, vehicle_model, vehicle_year, vehicle_color,
+        km, fuel_level, issue: issue || 'Revisión general',
+        stage: 0,
+        parts: [{ id: 'p1', description: 'Recepción e Inspección General', type: 'service', quantity: 1, unit_price: 0, total: 0 }],
+        total_amount: 0,
+        currency: 'Bs',
+        checklist: { bodywork: true, lights: true, glass: true, tires: true, interior: true, tools: true, docs: true }
+      };
+
+      if (supabase) {
+        await supabase.from('orders').insert([newOrder]);
+      }
+
+      state.orders.unshift(newOrder);
+      state.selectedId = newOrder.id;
+      closeNewOrderModal();
+      showToast(`¡Orden ${newOrder.id} aperturada!`, 'success');
+      renderOrdersList();
+      renderCurrentDetail();
+      renderMetrics();
+    }
+
+    // Client Tracking Portal
+    function openTrackingModal() {
+      document.getElementById('trackingSearchInput').value = '';
+      document.getElementById('trackingResult').innerHTML = `
+        <div style="text-align: center; color: var(--text-muted); padding: 20px;">
+          Ingresa la placa del vehículo (ej: 4587-KLP) o el código de orden (ej: OT-2408).
+        </div>
+      `;
+      document.getElementById('modalTracking').classList.add('open');
+    }
+    function closeTrackingModal() { document.getElementById('modalTracking').classList.remove('open'); }
+
+    function searchTracking() {
+      const term = document.getElementById('trackingSearchInput').value.trim().toUpperCase();
+      if (!term) return;
+
+      const order = state.orders.find(o => o.plate?.toUpperCase() === term || o.id?.toUpperCase() === term);
+      const container = document.getElementById('trackingResult');
+
+      if (!order) {
+        container.innerHTML = `
+          <div style="text-align: center; color: var(--accent-red); padding: 24px;">
+            <i class="fa-solid fa-triangle-exclamation" style="font-size: 28px; margin-bottom: 8px; display: block;"></i>
+            No se encontró ningún vehículo activo con esa placa o código de orden.
+          </div>
+        `;
+        return;
+      }
+
+      const stage = STAGES[order.stage] || STAGES[0];
+      const progressPercent = Math.round(((order.stage + 1) / 6) * 100);
+
+      container.innerHTML = `
+        <div class="tracking-banner">
+          <h4 style="font-size: 18px; margin-bottom: 4px;">${order.vehicle_brand || ''} ${order.vehicle_model || ''}</h4>
+          <div style="font-family: monospace; font-size: 15px; font-weight: 800; color: #FFF; margin-bottom: 8px;">
+            PLACA: ${order.plate} · ORDEN: ${order.id}
+          </div>
+          <div class="tracking-status-badge ${stage.color}">
+            <i class="fa-solid ${stage.icon}"></i> ${stage.label} (${progressPercent}%)
+          </div>
+        </div>
+
+        <div style="margin-bottom: 16px;">
+          <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: 700; margin-bottom: 6px;">
+            <span>PROGRESO DE LA REPARACIÓN</span>
+            <span>${progressPercent}%</span>
+          </div>
+          <div style="height: 8px; background: var(--border-color); border-radius: 4px; overflow: hidden;">
+            <div style="height: 100%; width: ${progressPercent}%; background: var(--accent-orange);"></div>
+          </div>
+        </div>
+
+        <div style="background: #0e1522; padding: 14px; border-radius: var(--radius-sm); border: 1px solid var(--border-color); margin-bottom: 14px; font-size: 13px;">
+          <p><strong><i class="fa-solid fa-wrench"></i> Diagnóstico:</strong> ${order.technical_diagnosis || 'Inspección en curso'}</p>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: #0e1522; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+          <span style="font-weight: 700; font-size: 13px;">Total estimado:</span>
+          <span style="font-size: 18px; font-weight: 900; color: var(--accent-orange);">${formatMoney(order.total_amount, order.currency)}</span>
+        </div>
+
+        <div style="margin-top: 14px;">
+          <button class="btn btn-whatsapp" style="width: 100%; font-size: 13px;" onclick="contactWorkshopWhatsApp('${order.plate}', '${order.id}')">
+            <i class="fa-brands fa-whatsapp"></i> Consultar a Recepción por WhatsApp (+591 69710419)
+          </button>
+        </div>
+      `;
+    }
+
+    function exportCsv() {
+      const headers = ['ID', 'Placa', 'Vehiculo', 'Cliente', 'Telefono', 'Falla', 'Estado', 'Total'];
+      const rows = state.orders.map(o => [
+        `"${o.id}"`, `"${o.plate}"`, `"${o.vehicle_brand || ''} ${o.vehicle_model || ''}"`,
+        `"${o.owner_name}"`, `"${o.owner_phone}"`, `"${(o.issue || '').replace(/"/g, '""')}"`,
+        `"${(STAGES[o.stage] || STAGES[0]).label}"`, `"${o.total_amount}"`
+      ]);
+      const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+      const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'reporte_fluxo_garage.csv';
+      a.click();
+    }
+
+    async function resetDemoData() {
+      if (!confirm('¿Restaurar las órdenes de demostración iniciales en Supabase?')) return;
+      showToast('Restaurando demo en Supabase...', 'info');
+      await loadData();
+      showToast('¡Datos demo actualizados!', 'success');
+    }
+
+    // Initialization
+    document.addEventListener('DOMContentLoaded', () => {
+      loadData();
+
+      // Search event
+      document.getElementById('searchInput').addEventListener('input', (e) => {
+        state.searchQuery = e.target.value;
+        renderOrdersList();
+      });
+
+      // Filter chips
+      document.querySelectorAll('.filter-chips .chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+          document.querySelectorAll('.filter-chips .chip').forEach(c => c.classList.remove('active'));
+          chip.classList.add('active');
+          state.currentFilter = chip.dataset.filter;
+          renderOrdersList();
+        });
+      });
+
+      // Form
+      document.getElementById('newOrderForm').addEventListener('submit', handleNewOrder);
+    });
+  </script>
 </body>
 </html>
